@@ -1,18 +1,24 @@
 #修改TNAME: K2P 中的K2P为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
 name: Build Padavan
 
-on: 
+on:
   release:
     types: [published]
   push:
     tags:
     - 'v*'
-  #  branches: 
-  #    - master
-#  schedule:
-#    - cron: 0 8 * * 5
   watch:
     types: [started]
+  workflow_dispatch:
+    inputs:
+      tname:
+        description: 'Target Name'
+        required: true
+        default: 'JDCLOUD-RE-SP-01B'
+      kernel:
+        description: 'Kernel Version (4.4 or 3.4)'
+        required: true
+        default: '4.4'
 
 jobs:
   build:
@@ -32,7 +38,7 @@ jobs:
         pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
     - name: Clone source code
       env:
-        KERNEL: 4.4
+        KERNEL: ${{ github.event.inputs.kernel || '4.4' }}
       run: |
         if [ $KERNEL = "4.4" ] ; then
         git clone --depth=1 https://github.com/yuanyork/padavan-4.4.git /opt/rt-n56u
@@ -44,8 +50,8 @@ jobs:
         mkdir -p /opt/images/
     - name: Build Firmware
       env:
-        TNAME: JDCLOUD-RE-SP-01B
-        KERNEL: 4.4
+        TNAME: ${{ github.event.inputs.tname || 'JDCLOUD-RE-SP-01B' }}
+        KERNEL: ${{ github.event.inputs.kernel || '4.4' }}
       run: |
         cd /opt/rt-n56u/trunk
         if [ ! -f configs/templates/$TNAME.config ] ; then
